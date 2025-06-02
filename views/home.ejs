@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="style.css" />
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Poetsen+One&family=Poppins:wght@400;500;600;700&display=swap");
+      @import url("https://fonts.googleapis.com/css2?family=Josefin+Sans:ital,wght@0,100..700;1,100..700&display=swap");
+    </style>
+  </head>
+
+  <body>
+    <div class="heroSection">
+      <div class="navbar">
+        <h2>Quink</h2>
+        <div class="navbarlinks">
+          <%if(!final){%>
+          <a href="/register">Register</a>
+          <a href="/login">login</a>
+          <%}else{%>
+          <a href="/logout">logOut</a>
+          <%}%>
+        </div>
+      </div>
+
+      <div class="main">
+        <h1>Shorten Your Looooong Links</h1>
+        <p>
+          Quink is an efficent and easy-to-use Url Shortner that make to online
+          experience easy
+        </p>
+        <form action="/go/shortcode" method="POST">
+          <input
+            name="url"
+            type="text"
+            placeholder="Enter the link here"
+            required
+          />
+          <input
+            name="linkname"
+            type="text"
+            placeholder="Enter short name for link"
+            required
+          />
+          <button type="submit">Shorten Now !</button>
+        </form>
+        <!-- <div class="shortenLinks">{{shorten_url}}</div> -->
+
+        <div class="shortenLinks">
+          <% shorten_url.forEach((data) => { %>
+          <div class="container">
+            <a href="/go/<%= data.shortcode %>" target="_blank"
+              >New : <%= data.shortcode %></a
+            >
+            <a><%= data.url %></a>
+          </div>
+          <% }) %>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
