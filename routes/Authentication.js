@@ -36,4 +36,8 @@ router.post("/login", async (req, res) => {
   }
 });
 
+router.get("/forget", (req, res) => {
+  res.render("forget");
+});
+
 export const Authentication = router;

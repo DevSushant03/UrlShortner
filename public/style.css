@@ -122,7 +122,8 @@ form button {
   transition: 0.1s;
 
   &:hover {
-    background-color: #1c2330;
+    transform: scale(1.01);
+    background-color: #222a3a;
   }
 }
 .container a {
