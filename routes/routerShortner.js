@@ -1,52 +1,29 @@
-// import { readFile, writeFile } from "fs/promises";
 // import path from "path";
-import { Router } from "express"; //import router from express
-// import { userCollection } from "../Mongo/mongo-driver.js"; //mongoDB
+import { Router } from "express";
+import dotenv from "dotenv";
 import { db } from "../Mysql/mysql_db.js"; // MySql
+import { shortlinksSchema } from "../validator/auth_validator.js";
+import { verifyAuth } from "../middleware/auth.js";
+import jwt from "jsonwebtoken";
 
+dotenv.config(); //import router from express
 const router = Router(); //create instance for router then replace app. => router then export it.
 
-// const DataPath = path.join("Data", "links.json");
-
-const loadlinks = async () => {
+const loadlinks = async (userId) => {
   // return userCollection.find().toArray();
-  const [data] = await db.execute(
-    "select * from shortlinks"
-  );
+  const [data] = await db.execute("select * from shortlinks WHERE user_id=?", [
+    userId,
+  ]);
   return data;
 };
 
-const savelinks = async ({ url, linkname }) => {
-  return await db.execute( "insert into shortlinks(shortcode,url) values(?,?)",[linkname,url])
+const savelinks = async ({ url, shortcode, userId }) => {
+  return await db.execute(
+    "insert into shortlinks(shortcode,url,user_id) values(?,?,?)",
+    [shortcode, url, userId]
+  );
 };
-// const loadlinks = async () => {
-//   try {
-//     const data = await readFile(DataPath, "utf-8");
-
-//     return JSON.parse(data);
-//   } catch (error) {
-//     if (error.code === "ENOENT") {
-//       await writeFile(DataPath, JSON.stringify({}));
-//       return {};
-//     }
-//   }
-// };
-
-// const savelinks = async (linkData) => {
-//   await writeFile(DataPath, JSON.stringify(linkData));
-// };
-
-// router.get("/report", (req, res) => {
-//   const data = [
-//     {
-//       name: "sushant",
-//       rollno: 24,
-//       class: "tybscit",
-//     },
-//   ];
-//   res.render("report", { data });
-// });
-
+// =================================================================================
 router.get("/favicon.ico", (req, res) => res.status(204).end());
 
 router.get("/go/:shortcode", async (req, res) => {
@@ -54,9 +31,10 @@ router.get("/go/:shortcode", async (req, res) => {
 
   try {
     // const findLink = await userCollection.findOne({ linkname: shortcode }); // or use 'shortcode' if the field exists
-    const [findLink] = await db.execute(`select url from shortlinks WHERE shortcode="${shortcode}"`); // or use 'shortcode' if the field exists
-    console.log(findLink);
-    
+    const [findLink] = await db.execute(
+      `select url from shortlinks WHERE shortcode="${shortcode}"`
+    ); // or use 'shortcode' if the field exists
+
     if (!findLink) {
       return res.status(404).send("Shortcode not found");
     }
@@ -67,68 +45,156 @@ router.get("/go/:shortcode", async (req, res) => {
     res.status(500).send("Server Error");
   }
 });
+// ===========================================================================================
 router.get("/", async (req, res) => {
-  // res.sendFile(path.join(import.meta.dirname, "index.html"));
-  // const file = await readFile(path.join("views", "home.ejs"));
+  let token = req.cookies.access_token;
 
-  const links = await loadlinks();
+  let refreshtoken = req.cookies.refresh_token;
 
-  let isLoggrdIn = req.headers.cookie;
+  let links = [];
 
-  if (isLoggrdIn) {
-    var final = Boolean(isLoggrdIn.split("=")[1]);
+  if (token) {
+    try {
+      const tokenDecoded = jwt.verify(token, process.env.JWT_SECRET);
+
+      links = await loadlinks(tokenDecoded.id);
+    } catch (err) {
+      console.log("JWT error:", err.message);
+    }
+  } else if (refreshtoken) {
+    const { sessionId } = jwt.verify(refreshtoken, process.env.JWT_SECRET);
+
+    const [users] = await db.execute(`SELECT * FROM user_sessions WHERE id=?`, [
+      sessionId,
+    ]);
+
+    const [userdata] = await db.execute(`SELECT * FROM userdata WHERE id = ?`, [
+      users[0].user_id,
+    ]);
+    const accessToken = jwt.sign(
+      {
+        id: userdata[0].id,
+        username: userdata[0].username,
+        email: userdata[0].email,
+        sessionId,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "15m" }
+    );
+
+    token = accessToken;
+    res.cookie("access_token", accessToken, {
+      httpOnly: true,
+      path: "/",
+      maxAge: 15 * 60 * 1000, // 15 minutes
+      sameSite: "strict",
+      secure: process.env.JWT_SECRET,
+    });
+    links = await loadlinks(userdata[0].id);
   }
-
-  // const content = file.toString().replaceAll(
-  //   "{{shorten_url}}",
-  //   links
-  //     .map(
-  //       (data) =>
-  //         ` <div class="container" key='${data._id}'>
-  //         <a href="${data.linkname}" target="_blank">New : ${data.linkname}</a>
-  //         <a>${data.url}</a>
-  //       </div>`
-  //     )
-  //     .join("")
-  // );
-
-  // res.send(content,final);
-
   res.render("home", {
     shorten_url: links,
-    final,
+    token,
+    error: req.flash("error"),
   });
 });
+// =================================================================================================
+router.post("/go/:shortcode", verifyAuth, async (req, res) => {
+  const token = req.cookies.access_token;
+  console.log("access token :", token);
 
-router.post("/go/:shortcode", async (req, res) => {
-  let isLoggrdIn = req.headers.cookie;
+  if (!token) return res.redirect("/login");
 
-  if (isLoggrdIn) {
-    var final = Boolean(isLoggrdIn.split("=")[1]);
-  }
-  if (!final) {
-    res.redirect("/login");
-  } else {
-    const { url, linkname } = req.body;
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const userId = decoded.id;
 
-    // const links = await loadlinks();
-    // const findname = await userCollection.findOne({ linkname: linkname });
-    const [findname] =await db.execute(
-        `select shortcode from shortlinks WHERE shortcode="${linkname}"`
-      );
-   
-    
-
-    if (findname.length > 0) {
-      return res
-        .status(400)
-        .send("Short name already exist. Try some different name");
+    const result = shortlinksSchema.safeParse(req.body);
+    if (!result.success) {
+      req.flash("error", result.error.errors[0].message);
+      return res.redirect("/");
     }
-    // links[linkname] = url;
-    await savelinks({ url, linkname });
-    console.log("Data saved successfully");
+
+    const { shortcode, url } = result.data;
+    const [findname] = await db.execute(
+      `select shortcode from shortlinks WHERE shortcode="${shortcode}"`
+    );
+    if (findname.length > 0) {
+      req.flash("error", "Shortcode already exists");
+      return res.redirect("/");
+    }
+
+    await savelinks({ url, shortcode, userId });
+    console.log("Data saved");
     res.redirect("/");
+  } catch (err) {
+    return res.redirect("/login");
   }
+});
+
+router.get("/edit/:id", async (req, res) => {
+  const id = req.params.id;
+  let isLoggedIn = Boolean(req.cookies.isLoggedIn);
+
+  if (isLoggedIn) {
+    const [data] = await db.execute(
+      `select * from shortlinks WHERE id="${id}"`
+    );
+
+    if (!data) {
+      res.send("Internal server error");
+    } else {
+      res.render("editShortlinks", {
+        isLoggedIn: isLoggedIn,
+        id: data[0].id,
+        url: data[0].url,
+        shortcode: data[0].shortcode,
+      });
+    }
+  } else {
+    res.redirect("/login");
+  }
+});
+router.post("/edit/:id", async (req, res) => {
+  const id = req.params.id;
+
+  const parsed = shortlinksSchema.safeParse(req.body);
+
+  if (!parsed.success) {
+    // If validation fails
+    console.log(parsed.error);
+    return res.status(400).send("Validation error");
+  }
+
+  const data = parsed.data;
+
+  await db.execute(
+    `UPDATE shortlinks SET shortcode = ?, url = ? WHERE id = ?`,
+    [data.shortcode, data.url, id]
+  );
+  res.redirect("/");
+});
+
+router.get("/delete/:id", async (req, res) => {
+  const id = req.params.id;
+  let isLoggedIn = Boolean(req.cookies.isLoggedIn);
+
+  if (isLoggedIn) {
+    await db.execute("delete from shortlinks WHERE id=?", [id]);
+    res.redirect("/");
+  } else {
+    res.redirect("/login");
+  }
+});
+
+router.get("/profile", verifyAuth,async (req, res) => {
+  let token = req.cookies.access_token;
+  const userinfo = jwt.verify(token,process.env.JWT_SECRET)
+  
+  res.render("profile", {
+    token,
+    userinfo
+  });
 });
 
 export const ShortnerLink = router;

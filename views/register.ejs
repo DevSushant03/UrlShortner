@@ -72,6 +72,14 @@
         background-color: #0d1120;
         text-align: center;
       }
+      .error-message{
+        color: rgb(255, 255, 255);
+        text-shadow: #0b101b;
+        text-transform: lowercase;
+        padding: 3px 10px;
+        border-left: 3px solid rgb(255, 255, 255);
+        background:linear-gradient(90deg,#f80000,transparent);
+      }
     </style>
   </head>
   <body>
@@ -103,6 +111,11 @@
           name="password"
           required
         />
+        <% if(error && error.length > 0){ %>
+          <% error.forEach((error)=>{ %>
+            <p class="error-message"><%=error%></p>
+         <% }) %>
+        <% } %>
 
         <hr />
 

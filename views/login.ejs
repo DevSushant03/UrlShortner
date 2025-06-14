@@ -13,7 +13,7 @@
       }
       
 
-      input[type="text"],
+      input[type="email"],
       input[type="password"] {
         width: 100%;
         padding: 12px 20px;
@@ -68,6 +68,14 @@
         float: right;
         padding-top: 16px;
       }
+      .error-message{
+        color: rgb(255, 255, 255);
+        text-shadow: #0b101b;
+        text-transform: lowercase;
+        padding: 5px 10px;
+        border-left: 3px solid rgb(255, 255, 255);
+        background:linear-gradient(90deg,#f80000,transparent);
+      }
 
       /* Change styles for span and cancel button on extra small screens */
       @media screen and (max-width: 300px) {
@@ -86,16 +94,21 @@
       <form action="/login" method="post" id="login-form">
         <h2>Login Form</h2>
       <div class="container">
-        <label for="username"><b>Username</b></label>
-        <input type="text" placeholder="Enter Username" name="username" required />
+        <label for="email"><b>Email</b></label>
+        <input type="email" placeholder="Enter a email" name="email" required />
 
         <label for="psw"><b>Password</b></label>
         <input
           type="password"
-          placeholder="Enter Password"
+          placeholder="Enter a password"
           name="password"
           required
         />
+         <% if(error && error.length > 0){ %>
+          <% error.forEach((error)=>{ %>
+            <p class="error-message"><%=error%></p>
+         <% }) %>
+        <% } %>
 
         <button type="submit">Login</button>
         <label>

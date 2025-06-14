@@ -4,15 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Quink</title>
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="/style.css" />
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Poetsen+One&family=Poppins:wght@400;500;600;700&display=swap");
       @import url("https://fonts.googleapis.com/css2?family=Josefin+Sans:ital,wght@0,100..700;1,100..700&display=swap");
     </style>
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
-    />
   </head>
 
   <body>
@@ -20,13 +16,11 @@
       <div class="navbar">
         <h1>Quink</h1>
         <div class="navbarlinks">
-          <a href="/">Home</a>
-          <%if(!token){%>
+          <%if(!isLoggedIn){%>
           <a href="/register">Register</a>
           <a href="/login">login</a>
           <%}else{%>
-            <a href="/profile">Profile</a>
-            <a href="/logout">logOut</a>
+          <a href="/logout">logOut</a>
           <%}%>
         </div>
       </div>
@@ -37,45 +31,28 @@
           Quink is an efficent and easy-to-use Url Shortner that make to online
           experience easy
         </p>
-        <form action="/go/shortcode" method="POST">
+        <form action="/edit/<%=id%>" method="POST">
           <input
             name="url"
             type="text"
+            value="<%= url %>"
             placeholder="Enter the link here"
             required
           />
           <input
             name="shortcode"
             type="text"
+            value="<%=shortcode%>"
             placeholder="Enter short name for link"
             required
           />
-          <button type="submit">Shorten Now !</button>
+          <button type="submit">Update</button>
         </form>
         <!-- <div class="shortenLinks">{{shorten_url}}</div> -->
-        <% if(error && error.length > 0){ %> <% error.forEach((error)=>{ %>
-        <p class="error-message"><%=error%></p>
-        <% }) %> <% } %>
+         
 
-        <h2>Your ShortLinks</h2>
-        <div class="shortenLinks">
-          <% shorten_url.forEach((data) => { %>
-          <div class="container">
-            <a href="/go/<%= data.shortcode %>" target="_blank"
-              >New : <%= data.shortcode %></a
-            >
-            <a><%= data.url %></a>
-            <span>
-              <a href="/edit/<%=data.id%>">
-                <i class="fas fa-edit"></i>
-              </a>
-              <a href="/delete/<%=data.id%>">
-                <i class="fas fa-trash" style="color: red"></i>
-              </a>
-            </span>
-          </div>
-          <% }) %>
-        </div>
+        
+       
       </div>
     </div>
   </body>

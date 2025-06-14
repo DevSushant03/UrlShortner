@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quink</title>
+    <link rel="stylesheet" href="style.css" />
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Poetsen+One&family=Poppins:wght@400;500;600;700&display=swap");
+      @import url("https://fonts.googleapis.com/css2?family=Josefin+Sans:ital,wght@0,100..700;1,100..700&display=swap");
+    </style>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+  </head>
+
+  <body>
+    <div class="heroSection">
+      <div class="navbar">
+        <h1>Quink</h1>
+        <div class="navbarlinks">
+            <a href="/">Home</a>
+          <%if(!token){%>
+          <a href="/register">Register</a>
+          <a href="/login">login</a>
+          <%}else{%>
+            <a href="/profile">Profile</a>
+          <a href="/logout">logOut</a>
+          <%}%>
+        </div>
+      </div>
+      <h1>Your Profile</h1>
+      <h3>Username: <%=userinfo.username%></h3>
+      <h3>Email: <%=userinfo.email%></h3>
+
+      
+    </div>
+  </body>
+</html>
