@@ -52,7 +52,6 @@ router.post("/register", async (req, res) => {
     const user = users[0];
 
      await creatingToken({user, db, req , res,userAgent});
-
     return res.redirect("/");
   } catch (error) {
     console.error("Registration Error:", error);
