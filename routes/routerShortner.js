@@ -134,25 +134,17 @@ router.post("/go/:shortcode", verifyAuth, async (req, res) => {
 
 router.get("/edit/:id", async (req, res) => {
   const id = req.params.id;
-  let isLoggedIn = Boolean(req.cookies.isLoggedIn);
 
-  if (isLoggedIn) {
-    const [data] = await db.execute(
-      `select * from shortlinks WHERE id="${id}"`
-    );
+  const [data] = await db.execute(`select * from shortlinks WHERE id="${id}"`);
 
-    if (!data) {
-      res.send("Internal server error");
-    } else {
-      res.render("editShortlinks", {
-        isLoggedIn: isLoggedIn,
-        id: data[0].id,
-        url: data[0].url,
-        shortcode: data[0].shortcode,
-      });
-    }
+  if (!data) {
+    res.send("Internal server error");
   } else {
-    res.redirect("/login");
+    res.render("editShortlinks", {
+      id: data[0].id,
+      url: data[0].url,
+      shortcode: data[0].shortcode,
+    });
   }
 });
 router.post("/edit/:id", async (req, res) => {
@@ -177,23 +169,18 @@ router.post("/edit/:id", async (req, res) => {
 
 router.get("/delete/:id", async (req, res) => {
   const id = req.params.id;
-  let isLoggedIn = Boolean(req.cookies.isLoggedIn);
 
-  if (isLoggedIn) {
-    await db.execute("delete from shortlinks WHERE id=?", [id]);
-    res.redirect("/");
-  } else {
-    res.redirect("/login");
-  }
+  await db.execute("delete from shortlinks WHERE id=?", [id]);
+  res.redirect("/");
 });
 
-router.get("/profile", verifyAuth,async (req, res) => {
+router.get("/profile", verifyAuth, async (req, res) => {
   let token = req.cookies.access_token;
-  const userinfo = jwt.verify(token,process.env.JWT_SECRET)
-  
+  const userinfo = jwt.verify(token, process.env.JWT_SECRET);
+
   res.render("profile", {
     token,
-    userinfo
+    userinfo,
   });
 });
 
