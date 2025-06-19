@@ -33,10 +33,10 @@ app.set("view engine", "ejs");
 // app.set('views', import.meta.dirname + '/views');
 // app.set("views","folder_name?")//if you are using diffrent folder name instant of "views" then you have to specific it.
 
-app.listen(PORT, () => {
-  console.log(`Server is running on  http://localhost:${PORT}`);
-});
-
-// app.listen(PORT, '0.0.0.0', () => {
-//   console.log(`Server is running on https://0.0.0.0:${PORT}`);
+// app.listen(PORT, () => {
+//   console.log(`Server is running on  http://localhost:${PORT}`);
 // });
+
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server is running on https://0.0.0.0:${PORT}`);
+});
