@@ -64,7 +64,7 @@
             <a href="/go/<%= data.shortcode %>" target="_blank"
               >New : <%= data.shortcode %></a
             >
-            <a><%= data.url %></a>
+            <a><%= data.url.slice(0,40).split(" ")+"...." %></a>
             <span>
               <a href="/edit/<%=data.id%>">
                 <i class="fas fa-edit"></i>

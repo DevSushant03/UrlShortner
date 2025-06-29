@@ -12,5 +12,3 @@ export const db = mysql.createPool({
   connectionLimit: 10,
   queueLimit: 0,
 });
-
-// console.log(await db.execute("select * from user_sessions"))
